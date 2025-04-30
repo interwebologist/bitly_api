@@ -1,3 +1,4 @@
+import logging
 import flask
 import os
 from flask import jsonify, request
@@ -44,24 +45,25 @@ def home():
         data = helper_object.avg_calculator(links)
         
         return jsonify(data)
+def main():    
+    # Security warnings for default credentials
+    if jwt_username == "test" and jwt_password == "test":
+        logger.warning('JWT username and password are default. Change this for production!')
+
+    if app.config['JWT_SECRET_KEY'] == "changethis":
+        logger.warning('JWT Secret is set to default. Change this for production!')
+
+    if not bitly_token:
+        logger.error('Bitly API token missing. Exiting.')
+        exit(1)
+    else:
+        group = bitly_object.group_getter()
+        if 'FORBIDDEN' in group.values():
+            logger.error("Bitly doesn't like your token. Replace or check it. Exiting.")
+            exit(1)
+        else:
+            # For production, consider using waitress or gunicorn
+            app.run(host="0.0.0.0", port=8080)
 
 if __name__ == "__main__":
-    if jwt_username and jwt_password == "test":
-        print('\033[33m' + ' * WARNING: Jwt username and password are default. Change this for production.')
-        print('\033[39m')
-
-    if jwt_secret_key == "changethis" :
-        print('\033[33m' + ' * WARNING: Jwt Secret is set to default. Change this for production.')
-        print('\033[39m')
-    if not token:
-        print('\033[31m' + ' * Error: Bitly API token missing. Exiting.')
-        print('\033[39m')
-        quit() 
-    else:
-        group = bitly_object.group_getter() 
-        
-        if 'FORBIDDEN' in group.values():
-            print('\033[31m' + ' * Error: Bitly doesn\'t like your token. Replace or check it. Exiting.')
-            print('\033[39m')
-        else:
-            app.run(host="0.0.0.0")
+    main()
